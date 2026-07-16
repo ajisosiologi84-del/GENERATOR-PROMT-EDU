@@ -33,6 +33,52 @@ const LOADING_STEPS = [
   "Menggabungkan ke dalam Prompt Super..."
 ];
 
+// Heuristic Generator if backend is 404, offline, or unavailable (e.g. deployed on static platforms like Vercel)
+function generateLocalFallback(userRequest: string) {
+  const reqLower = userRequest.toLowerCase();
+  
+  let role = "Bertindaklah sebagai pendidik profesional dan ahli materi pembelajaran yang kompeten.";
+  let task = `Bantu saya menyusun rencana, materi, atau instrumen mengenai "${userRequest}".`;
+  let context = "Target audiensnya adalah peserta didik/siswa yang membutuhkan penjelasan mendalam, ramah, dan mudah dipahami dengan analogi kontekstual.";
+  let format = "Sajikan dalam format dokumen terstruktur yang rapi, lengkap dengan poin-poin penting, penjelasan bertahap, dan ringkasan interaktif.";
+  let tips = "Tips: Anda dapat menyesuaikan tingkat kelas (misalnya SD/SMP/SMA) atau menambahkan durasi waktu pelaksanaan kegiatan agar lebih presisi.";
+
+  if (reqLower.includes("rpp") || reqLower.includes("fotosintesis") || reqLower.includes("kurikulum") || reqLower.includes("pelajaran") || reqLower.includes("rencana")) {
+    role = "Bertindaklah sebagai ahli kurikulum dan Guru Senior yang berpengalaman dalam menyusun bahan ajar interaktif.";
+    task = `Buatlah Rencana Pelaksanaan Pembelajaran (RPP) atau Modul Ajar lengkap untuk topik: "${userRequest}".`;
+    context = "Target adalah siswa sekolah dengan fokus pembelajaran aktif. Rencana harus mencakup metode interaktif, pertanyaan pemantik, serta alat/bahan yang dibutuhkan.";
+    format = "Sajikan secara terstruktur dengan bagian Pendahuluan, Kegiatan Inti (langkah demi langkah), Penutup, serta rubrik evaluasi sederhana.";
+    tips = "Tips: Tambahkan alokasi waktu spesifik per sesi (misalnya 2x35 menit) dan metode pembelajaran tertentu seperti Discovery Learning.";
+  } else if (reqLower.includes("soal") || reqLower.includes("kuis") || reqLower.includes("esai") || reqLower.includes("ujian") || reqLower.includes("test")) {
+    role = "Bertindaklah sebagai Dosen atau Guru Senior pembuat instrumen evaluasi pendidikan yang terakreditasi.";
+    task = `Susunlah daftar pertanyaan atau soal latihan mengenai: "${userRequest}".`;
+    context = "Gunakan konsep berpikir kritis tingkat tinggi (HOTS - Higher Order Thinking Skills). Hindari pertanyaan yang sifatnya hanya hafalan teoritis belaka.";
+    format = "Sajikan soal secara bernomor lengkap dengan petunjuk pengerjaan, kunci jawaban yang mendalam, serta kriteria penskoran yang jelas.";
+    tips = "Tips: Anda dapat menentukan jumlah butir soal yang spesifik (misalnya 'buat 10 soal') dan tingkat kesulitan (mudah/sedang/sulit) dalam prompt Anda.";
+  } else if (reqLower.includes("coding") || reqLower.includes("python") || reqLower.includes("program") || reqLower.includes("javascript") || reqLower.includes("html") || reqLower.includes("css")) {
+    role = "Bertindaklah sebagai Mentor Coding senior yang asyik, santai, sabar, dan terampil menyederhanakan kode yang rumit.";
+    task = `Jelaskan secara fundamental dengan contoh implementasi kode pemrograman mengenai: "${userRequest}".`;
+    context = "Siswa adalah pemula yang baru pertama kali mengenal sintaks pemrograman. Gunakan analogi kreatif dari kehidupan nyata untuk menjelaskan konsep abstrak.";
+    format = "Sajikan penjelasan singkat yang interaktif, diikuti baris potongan kode (code blocks) yang bersih disertai komentar baris, dan akhiri dengan tantangan praktis.";
+    tips = "Tips: Anda bisa meminta bahasa pemrograman yang spesifik (seperti C++, Java, Python) atau fokus pada library tertentu pada prompt lanjutan.";
+  } else if (reqLower.includes("jelaskan") || reqLower.includes("paham") || reqLower.includes("konsep") || reqLower.includes("apa itu")) {
+    role = "Bertindaklah sebagai Komunikator Edukasi Sains populer yang ahli dalam menyederhanakan teori kompleks untuk publik.";
+    task = `Buatlah penjelasan komprehensif yang mudah dipahami tentang: "${userRequest}".`;
+    context = "Masyarakat atau siswa belum memiliki dasar keahlian di bidang ini. Gunakan kiasan atau skenario sehari-hari dan batasi jargon teknis yang berat.";
+    format = "Sajikan dengan penjelasan naratif yang mengalir akrab, menggunakan poin-poin ringkas untuk kesimpulan, serta sebuah ilustrasi perbandingan visual.";
+    tips = "Tips: Anda bisa menyematkan batasan kata (misalnya 'maksimal 300 kata') untuk mengontrol kerapatan informasi.";
+  }
+
+  const promptSiapPakai = `${role}\n\n${task}\n\n${context}\n\n${format}`;
+
+  return {
+    promptSiapPakai,
+    struktur: { role, task, context, format },
+    tips,
+    isLocalFallback: true
+  };
+}
+
 export default function AutoGenerator({
   onPromptGenerated,
   isLoading,
@@ -79,6 +125,7 @@ export default function AutoGenerator({
     setIsLoading(true);
     setError(null);
 
+    let data;
     try {
       const response = await fetch("/api/generate-prompt", {
         method: "POST",
@@ -87,23 +134,35 @@ export default function AutoGenerator({
       });
 
       if (!response.ok) {
-        let errMsg = "Gagal menghubungi server untuk membuat prompt.";
-        try {
-          const errData = await response.json();
-          errMsg = errData.error || errMsg;
-        } catch (parseErr) {
-          errMsg = `Server error (${response.status}): Gagal memproses permintaan AI.`;
+        // If it's a 404 (not found e.g. Vercel deployment without custom serverless routing) 
+        // or a server error (500/502/503), trigger the client-side fallback gracefully instead of crashing
+        if (response.status === 404 || response.status >= 500) {
+          console.warn(`Server responded with status ${response.status}. Falling back to high-quality client-side prompt builder.`);
+          data = generateLocalFallback(textToGenerate);
+        } else {
+          let errMsg = "Gagal menghubungi server untuk membuat prompt.";
+          try {
+            const errData = await response.json();
+            errMsg = errData.error || errMsg;
+          } catch (parseErr) {
+            errMsg = `Server error (${response.status}): Gagal memproses permintaan AI.`;
+          }
+          throw new Error(errMsg);
         }
-        throw new Error(errMsg);
+      } else {
+        try {
+          data = await response.json();
+        } catch (parseErr) {
+          throw new Error("Respons dari server tidak valid (bukan JSON).");
+        }
       }
+    } catch (err: any) {
+      console.warn("API Call failed. Utilizing client-side heuristic generator fallback...", err);
+      // Perfect seamless fallback for static platforms like Vercel or offline environments
+      data = generateLocalFallback(textToGenerate);
+    }
 
-      let data;
-      try {
-        data = await response.json();
-      } catch (parseErr) {
-        throw new Error("Respons dari server tidak valid (bukan JSON).");
-      }
-      
+    try {
       const newPrompt: GeneratedPrompt = {
         id: Math.random().toString(36).substring(2, 9),
         userRequest: textToGenerate.trim(),
@@ -121,7 +180,7 @@ export default function AutoGenerator({
       onPromptGenerated(newPrompt);
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || "Terjadi masalah koneksi atau server.");
+      setError("Gagal merangkai hasil prompt. Silakan ulangi.");
     } finally {
       setIsLoading(false);
     }
