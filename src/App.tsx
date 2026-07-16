@@ -354,9 +354,25 @@ export default function App() {
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-6 mt-12 text-center text-slate-400 text-xs">
-        <div className="max-w-7xl mx-auto px-4">
-          <p className="font-medium text-slate-500 font-display">Generator Prompt EDU &copy; 2026</p>
-          <p className="mt-1">Didesain khusus untuk meningkatkan kualitas pengajaran berbasis AI dengan formula terstruktur.</p>
+        <div className="max-w-7xl mx-auto px-4 flex flex-col items-center gap-2">
+          <p className="font-medium text-slate-500 font-display">
+            Generator Prompt EDU &copy; 2026
+          </p>
+          <p className="text-[11px] text-slate-400">
+            Didesain khusus untuk meningkatkan kualitas pengajaran berbasis AI dengan formula terstruktur.
+          </p>
+          <div className="mt-2 pt-2 border-t border-slate-100 w-full max-w-xs flex justify-center">
+            <a
+              href="https://lynk.id/ajisosiologi"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-100 text-xs font-semibold text-slate-600 hover:text-teal-700 transition-all shadow-sm"
+              id="credit-author-link"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span>
+              Created by <span className="font-bold">@ajisosiologi</span>
+            </a>
+          </div>
         </div>
       </footer>
     </div>
