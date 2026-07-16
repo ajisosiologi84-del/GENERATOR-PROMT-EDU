@@ -87,11 +87,22 @@ export default function AutoGenerator({
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || "Gagal menghubungi server untuk membuat prompt.");
+        let errMsg = "Gagal menghubungi server untuk membuat prompt.";
+        try {
+          const errData = await response.json();
+          errMsg = errData.error || errMsg;
+        } catch (parseErr) {
+          errMsg = `Server error (${response.status}): Gagal memproses permintaan AI.`;
+        }
+        throw new Error(errMsg);
       }
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseErr) {
+        throw new Error("Respons dari server tidak valid (bukan JSON).");
+      }
       
       const newPrompt: GeneratedPrompt = {
         id: Math.random().toString(36).substring(2, 9),
