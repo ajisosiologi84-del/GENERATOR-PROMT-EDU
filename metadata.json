@@ -1,0 +1,6 @@
+{
+  "name": "Generator Prompt EDU",
+  "description": "Asisten cerdas bagi guru, dosen, dan siswa untuk merancang 'Prompt Super' edukatif menggunakan formula Role, Task, Context, dan Format.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
