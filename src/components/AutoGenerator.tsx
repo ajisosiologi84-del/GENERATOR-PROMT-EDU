@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from "react";
 import { GeneratedPrompt } from "../types";
-import { Wand2, Sparkles, ArrowRight, Lightbulb, AlertCircle } from "lucide-react";
+import { Wand2, Sparkles, ArrowRight, Lightbulb, AlertCircle, BookOpen, GraduationCap, Users, Bookmark } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface AutoGeneratorProps {
@@ -9,32 +9,83 @@ interface AutoGeneratorProps {
   setIsLoading: (loading: boolean) => void;
 }
 
-const QUICK_TESTS = [
-  {
-    label: "RPP Fotosintesis (SMP)",
-    request: "Bikinkan saya RPP tentang fotosintesis untuk kelas 7 SMP dengan metode eksperimen sederhana."
-  },
-  {
-    label: "Soal Esai Sejarah Kemerdekaan",
-    request: "Saya mau bikin soal esai sejarah kemerdekaan Indonesia yang menantang berpikir kritis siswa SMA."
-  },
-  {
-    label: "Coding Python Anak SMP",
-    request: "Jelaskan coding Python tentang perulangan (loops) buat anak SMP dengan cara yang menyenangkan."
-  }
-];
+const QUICK_TESTS_BY_CATEGORY = {
+  Guru: [
+    {
+      label: "Modul Ajar / RPP Fotosintesis SMP",
+      request: "Bikinkan saya RPP tentang fotosintesis untuk kelas 7 SMP dengan metode eksperimen sederhana Kurikulum Merdeka."
+    },
+    {
+      label: "Rubrik Penilaian Sikap Kerja Kelompok",
+      request: "Buat rubrik penilaian sikap gotong royong siswa saat kerja kelompok kelas SMP dalam bentuk tabel."
+    },
+    {
+      label: "Strategi Diferensiasi Membaca SD",
+      request: "Rancang strategi mengajar membaca di kelas 3 SD yang ada anak belum lancar mengeja dan yang sudah mahir pemahaman."
+    }
+  ],
+  Dosen: [
+    {
+      label: "Evaluasi Sandwich Feedback Esai",
+      request: "Berikan ulasan esai mahasiswa sosiologi digital mengenai dampak perubahan budaya akibat digitalisasi."
+    },
+    {
+      label: "Kerangka RPS Sosiologi Komunitas",
+      request: "Rancangkan RPS silabus kuliah Pengantar Sosiologi Komunitas semester 3 tingkat S1 Universitas."
+    },
+    {
+      label: "Ulasan Kritis (Peer Review) Jurnal",
+      request: "Lakukan telaah kritis draf naskah artikel ilmiah tentang partisipasi politik pemilih pemula di era digital."
+    }
+  ],
+  Siswa: [
+    {
+      label: "Konsep Loops Python Anak SMP",
+      request: "Jelaskan coding Python tentang perulangan (loops) buat anak SMP dengan analogi menarik."
+    },
+    {
+      label: "Penjelasan Visual Logaritma",
+      request: "Jelaskan logaritma dengan gampang secara visual agar saya tidak bingung menghafal sifat-sifat rumusnya."
+    },
+    {
+      label: "Panduan IELTS Opinion Essay",
+      request: "Bagaimana struktur menulis opinion essay bahasa inggris tentang peran teknologi di kelas menggunakan metode PEEL?"
+    }
+  ],
+  Umum: [
+    {
+      label: "Analogi Ruang-Waktu & Gravitasi",
+      request: "Jelaskan konsep gaya gravitasi dan kelengkungan ruang waktu Einstein kepada masyarakat awam."
+    },
+    {
+      label: "Surel Formal Kolaborasi Magang",
+      request: "Bikin draf email formal persuasif mengajukan kerja sama program magang mahasiswa ke perusahaan startup teknologi."
+    },
+    {
+      label: "Naskah Video Reels/TikTok Edukatif",
+      request: "Tulis naskah video berdurasi 60 detik tentang penjelasan sosiologi mengapa manusia senang bergosip."
+    }
+  ]
+};
+
+const PLACEHOLDERS_BY_CATEGORY = {
+  Guru: "Contoh: Buatkan modul ajar interaktif fisika SMA tentang hukum Newton dengan aktivitas praktikum...",
+  Dosen: "Contoh: Berikan umpan balik konstruktif akademik terhadap draf artikel jurnal sosiologi pembangunan mahasiswa...",
+  Siswa: "Contoh: Jelaskan secara sederhana cara kerja listrik dinamis disertai analogi air mengalir untuk anak SMP...",
+  Umum: "Contoh: Susun draf email formal pengajuan kemitraan program CSR universitas ke startup teknologi..."
+};
 
 const LOADING_STEPS = [
-  "Menganalisis konsep pembelajaran...",
-  "Merumuskan Peran (Role) terbaik...",
-  "Menyusun instruksi Tugas (Task) terperinci...",
-  "Menambahkan batasan Konteks (Context)...",
-  "Merancang pola Format keluaran ideal...",
+  "Menganalisis kebutuhan rekayasa prompt...",
+  "Merumuskan Peran (Role) terbaik khusus untuk target kelompok...",
+  "Menyusun instruksi Tugas (Task) terperinci dan mendalam...",
+  "Menambahkan batasan Konteks (Context) pembelajaran yang pas...",
+  "Merancang pola Format keluaran ideal siap salin...",
   "Menggabungkan ke dalam Prompt Super..."
 ];
 
 // Heuristic Generator if backend is 404, offline, or unavailable (e.g. deployed on static platforms like Vercel)
-function generateLocalFallback(userRequest: string) {
+export function generateLocalFallback(userRequest: string, category: "Guru" | "Dosen" | "Siswa" | "Umum" = "Guru") {
   const reqLower = userRequest.toLowerCase();
   
   let role = "Bertindaklah sebagai pendidik profesional dan ahli materi pembelajaran yang kompeten.";
@@ -43,7 +94,35 @@ function generateLocalFallback(userRequest: string) {
   let format = "Sajikan dalam format dokumen terstruktur yang rapi, lengkap dengan poin-poin penting, penjelasan bertahap, dan ringkasan interaktif.";
   let tips = "Tips: Anda dapat menyesuaikan tingkat kelas (misalnya SD/SMP/SMA) atau menambahkan durasi waktu pelaksanaan kegiatan agar lebih presisi.";
 
-  if (reqLower.includes("rpp") || reqLower.includes("fotosintesis") || reqLower.includes("kurikulum") || reqLower.includes("pelajaran") || reqLower.includes("rencana")) {
+  // Use selected category to build a specialized base structure first
+  if (category === "Guru") {
+    role = "Bertindaklah sebagai Guru Senior dan Konsultan Pendidikan Sekolah yang ahli di bidang materi ajar Kurikulum Merdeka.";
+    task = `Rancang modul ajar, rencana pembelajaran (RPP), materi ajar, atau instrumen asesmen yang berfokus pada: "${userRequest}".`;
+    context = "Target audiensnya adalah siswa sekolah yang membutuhkan penjelasan interaktif, keterlibatan aktif, serta pertanyaan pemantik diskusi yang melatih berpikir kritis.";
+    format = "Sajikan dalam format dokumen ajar/RPP yang terstruktur rapi, lengkap dengan poin-poin langkah kegiatan (Pendahuluan, Inti, Penutup), durasi waktu, alat bahan, serta instrumen penilaian.";
+    tips = "Tips: Cantumkan kelompok umur, jenjang kelas (misal: SD/SMP/SMA), serta estimasi alokasi waktu pengajaran agar hasilnya lebih pas.";
+  } else if (category === "Dosen") {
+    role = "Bertindaklah sebagai Profesor/Dosen Senior sekaligus Peneliti Akademik berpengetahuan luas yang aktif menulis publikasi ilmiah.";
+    task = `Susun panduan akademik, telaah kritis (peer review), kerangka silabus/RPS, atau ulasan ilmiah mendalam mengenai: "${userRequest}".`;
+    context = "Target audiens adalah mahasiswa perguruan tinggi, sejawat akademisi, atau peneliti yang mengutamakan ketepatan teori sosiologi/pendidikan, keruntutan gagasan, kebaruan sains (novelty), serta referensi literatur valid.";
+    format = "Sajikan dalam format draf tulisan akademis terstruktur dengan analisis teoretis tajam, argumen yang koheren, serta daftar masukan perbaikan secara profesional.";
+    tips = "Tips: Sebutkan kerangka teori sosiologi/sains tertentu atau pedoman gaya penulisan jurnal (misal: APA/Harvard) yang ingin Anda pakai.";
+  } else if (category === "Siswa") {
+    role = "Bertindaklah sebagai Tutor Pembelajaran Efektif (Study Coach) yang asyik, sabar, seru, dan terampil melatih konsep akademis sulit menjadi gampang.";
+    task = `Bantu saya memahami, merangkum, membuat peta pikiran (mind map), atau menyelesaikan materi belajar mandiri terkait: "${userRequest}".`;
+    context = "Saya adalah seorang pelajar/murid yang ingin memahami konsep esensial secara menyeluruh, bersiap menghadapi ujian sekolah, dan menghindari hafalan buta.";
+    format = "Sajikan penjelasan ramah bersahabat secara bertahap dengan analogi kreatif dari kehidupan nyata sehari-hari, batasi rumus-rumus rumit atau istilah kaku tanpa keterangan, dan selipkan satu kuis mini menyenangkan di akhir.";
+    tips = "Tips: Anda bisa meminta tutor ini untuk memberikan jembatan keledai (metode mnemonik) unik agar mempermudah mengingat materi sulit.";
+  } else if (category === "Umum") {
+    role = "Bertindaklah sebagai Asisten Rekayasa Prompt Kreatif, Penulis Profesional, dan Ahli Komunikasi Bisnis yang terampil menyusun rencana taktis.";
+    task = `Bantu saya merancang rencana kegiatan, draf korespondensi email formal, skenario naskah video edukatif, atau tulisan produktivitas mengenai: "${userRequest}".`;
+    context = "Ditujukan untuk keperluan komunikasi umum, profesionalisme kerja, publikasi media sosial, atau penjelasan populer kepada masyarakat luas. Fokuskan pada kejelasan pesan dan persuasivitas yang memikat.";
+    format = "Sajikan dalam draf tulisan siap pakai yang ringkas, berdaya pikat tinggi, mengalir logis, lengkap dengan instruksi teknis pelengkap (seperti petunjuk visual/audio naskah atau subjek surel).";
+    tips = "Tips: Tambahkan info audiens target spesifik (misal: calon mitra usaha, penonton TikTok, atau pelanggan baru) dan batasan panjang tulisan.";
+  }
+
+  // Refine structures if we detect specific keyword matches
+  if (reqLower.includes("rpp") || reqLower.includes("fotosintesis") || reqLower.includes("pelajaran") || reqLower.includes("rencana")) {
     role = "Bertindaklah sebagai ahli kurikulum dan Guru Senior yang berpengalaman dalam menyusun bahan ajar interaktif.";
     task = `Buatlah Rencana Pelaksanaan Pembelajaran (RPP) atau Modul Ajar lengkap untuk topik: "${userRequest}".`;
     context = "Target adalah siswa sekolah dengan fokus pembelajaran aktif. Rencana harus mencakup metode interaktif, pertanyaan pemantik, serta alat/bahan yang dibutuhkan.";
@@ -84,6 +163,7 @@ export default function AutoGenerator({
   isLoading,
   setIsLoading,
 }: AutoGeneratorProps) {
+  const [selectedCategory, setSelectedCategory] = useState<"Guru" | "Dosen" | "Siswa" | "Umum">("Guru");
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -120,7 +200,8 @@ export default function AutoGenerator({
     };
   }, [isLoading]);
 
-  const handleGenerate = async (textToGenerate: string) => {
+  const handleGenerate = async (textToGenerate: string, overrideCategory?: "Guru" | "Dosen" | "Siswa" | "Umum") => {
+    const targetCategory = overrideCategory || selectedCategory;
     if (!textToGenerate.trim()) return;
     setIsLoading(true);
     setError(null);
@@ -130,7 +211,10 @@ export default function AutoGenerator({
       const response = await fetch("/api/generate-prompt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userRequest: textToGenerate.trim() }),
+        body: JSON.stringify({ 
+          userRequest: textToGenerate.trim(),
+          category: targetCategory
+        }),
       });
 
       if (!response.ok) {
@@ -138,7 +222,7 @@ export default function AutoGenerator({
         // or a server error (500/502/503), trigger the client-side fallback gracefully instead of crashing
         if (response.status === 404 || response.status >= 500) {
           console.warn(`Server responded with status ${response.status}. Falling back to high-quality client-side prompt builder.`);
-          data = generateLocalFallback(textToGenerate);
+          data = generateLocalFallback(textToGenerate, targetCategory);
         } else {
           let errMsg = "Gagal menghubungi server untuk membuat prompt.";
           try {
@@ -159,7 +243,7 @@ export default function AutoGenerator({
     } catch (err: any) {
       console.warn("API Call failed. Utilizing client-side heuristic generator fallback...", err);
       // Perfect seamless fallback for static platforms like Vercel or offline environments
-      data = generateLocalFallback(textToGenerate);
+      data = generateLocalFallback(textToGenerate, targetCategory);
     }
 
     try {
@@ -199,34 +283,104 @@ export default function AutoGenerator({
           <Sparkles className="w-5 h-5" />
         </div>
         <div className="flex flex-col gap-1">
-          <h3 className="text-sm font-semibold text-teal-900 font-display">Rakit Prompt Instan dengan AI</h3>
+          <h3 className="text-sm font-semibold text-teal-900 font-display">Asisten Kecerdasan Rekayasa Prompt AI</h3>
           <p className="text-xs text-teal-800 leading-relaxed">
-            Masukkan ide kasar, topik, atau kebutuhan materi ajar Anda. AI akan merangkumnya menjadi formula
-            <strong> Peran, Tugas, Konteks, dan Format</strong> siap pakai secara otomatis.
+            Rakit prompt bersertifikasi edukatif secara otomatis. Tentukan target sasaran asisten pembelajaran Anda di bawah ini, ketik ide dasar Anda, dan saksikan AI menstrukturkan instruksi berkualitas tinggi.
           </p>
+        </div>
+      </div>
+
+      {/* Target User / Category Segmented Selector */}
+      <div className="flex flex-col gap-2">
+        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+          <Bookmark className="w-3.5 h-3.5 text-teal-600" />
+          1. Pilih Target Sasaran Asisten
+        </label>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200" id="generator-target-category">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedCategory("Guru");
+              if (!input) setInput("");
+            }}
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              selectedCategory === "Guru"
+                ? "bg-white text-teal-700 shadow-sm"
+                : "text-slate-600 hover:bg-slate-50/50"
+            }`}
+          >
+            <BookOpen className="w-4 h-4 text-blue-500" />
+            Guru
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedCategory("Dosen");
+              if (!input) setInput("");
+            }}
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              selectedCategory === "Dosen"
+                ? "bg-white text-teal-700 shadow-sm"
+                : "text-slate-600 hover:bg-slate-50/50"
+            }`}
+          >
+            <GraduationCap className="w-4 h-4 text-purple-500" />
+            Dosen
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedCategory("Siswa");
+              if (!input) setInput("");
+            }}
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              selectedCategory === "Siswa"
+                ? "bg-white text-teal-700 shadow-sm"
+                : "text-slate-600 hover:bg-slate-50/50"
+            }`}
+          >
+            <Users className="w-4 h-4 text-teal-500" />
+            Murid/Siswa
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedCategory("Umum");
+              if (!input) setInput("");
+            }}
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              selectedCategory === "Umum"
+                ? "bg-white text-teal-700 shadow-sm"
+                : "text-slate-600 hover:bg-slate-50/50"
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            Umum
+          </button>
         </div>
       </div>
 
       {/* Input Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="user-topic" className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
-            Topik Pembelajaran / Kebutuhan Anda
+          <label htmlFor="user-topic" className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+            <Wand2 className="w-3.5 h-3.5 text-teal-600" />
+            2. Ide Kasar atau Kebutuhan Instruksi
           </label>
           <div className="relative">
             <textarea
               id="user-topic"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Contoh: Buatkan kuis interaktif fisika SMA tentang gaya gesek..."
+              placeholder={PLACEHOLDERS_BY_CATEGORY[selectedCategory]}
               disabled={isLoading}
               rows={4}
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 transition-all shadow-inner placeholder:text-slate-400 disabled:opacity-50 resize-none"
+              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 transition-all shadow-inner placeholder:text-slate-400 disabled:opacity-50 resize-none"
             />
             <button
               type="submit"
               disabled={isLoading || !input.trim()}
-              className="absolute bottom-3 right-3 flex items-center justify-center p-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-40 disabled:hover:bg-teal-600 transition-all shadow-md shadow-teal-600/10 cursor-pointer"
+              className="absolute bottom-3 right-3 flex items-center justify-center p-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 disabled:hover:bg-teal-600 transition-all shadow-md shadow-teal-600/10 cursor-pointer"
               title="Kirim ke AI"
               id="submit-generate-btn"
             >
@@ -246,25 +400,26 @@ export default function AutoGenerator({
         </button>
       </form>
 
-      {/* Quick Test Recommendations */}
+      {/* Quick Test Recommendations filtered by category */}
       <div className="flex flex-col gap-2">
-        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-          💡 Rekomendasi Contoh Cepat
+        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+          <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+          💡 Contoh Cepat ({selectedCategory})
         </span>
         <div className="flex flex-col gap-2">
-          {QUICK_TESTS.map((test, idx) => (
+          {QUICK_TESTS_BY_CATEGORY[selectedCategory].map((test, idx) => (
             <button
               key={idx}
               onClick={() => {
                 setInput(test.request);
-                handleGenerate(test.request);
+                handleGenerate(test.request, selectedCategory);
               }}
               disabled={isLoading}
-              className="text-left px-4 py-2.5 bg-slate-50 hover:bg-teal-50/50 hover:text-teal-900 border border-slate-200 hover:border-teal-200 rounded-xl text-xs text-slate-700 transition-all duration-200 flex items-center justify-between group disabled:opacity-50"
-              id={`quick-test-btn-${idx}`}
+              className="text-left px-4 py-2.5 bg-slate-50 hover:bg-teal-50/50 hover:text-teal-950 border border-slate-200 hover:border-teal-200 rounded-xl text-xs text-slate-700 transition-all duration-200 flex items-center justify-between group disabled:opacity-50"
+              id={`quick-test-btn-${selectedCategory.toLowerCase()}-${idx}`}
             >
-              <span className="font-medium truncate">{test.label}</span>
-              <span className="text-[10px] text-slate-400 group-hover:text-teal-600 transition-colors font-mono flex items-center gap-1">
+              <span className="font-semibold truncate">{test.label}</span>
+              <span className="text-[10px] text-slate-400 group-hover:text-teal-600 transition-colors font-mono flex items-center gap-1 flex-shrink-0">
                 Uji Coba <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
               </span>
             </button>

@@ -35,41 +35,54 @@ app.use(express.json());
 // API route for generating prompts using Gemini with robust fallbacks
 app.post("/api/generate-prompt", async (req, res) => {
   try {
-    const { userRequest } = req.body;
+    const { userRequest, category = "Guru" } = req.body;
     if (!userRequest || typeof userRequest !== "string") {
       return res.status(400).json({ error: "Permintaan tidak boleh kosong." });
     }
 
-    const systemInstruction = `Anda adalah "Generator Prompt EDU", seorang Ahli Rekayasa Prompt (Prompt Engineer) tingkat lanjut yang berdedikasi khusus untuk dunia pendidikan (guru, dosen, pendidik, dan siswa).
-Tujuan utama Anda adalah mengubah AI dari sekadar mesin penjawab menjadi asisten pengajar yang tangguh bagi guru, dosen, maupun siswa.
+    let categoryDirective = "";
+    if (category === "Guru") {
+      categoryDirective = "FOKUS AUDIENS: Guru (Pendidik Sekolah Dasar/Menengah). Gunakan pendekatan Kurikulum (seperti Kurikulum Merdeka), rencana modul ajar/RPP, pertanyaan pemantik, materi interaktif kelas, serta rubrik penilaian yang praktis.";
+    } else if (category === "Dosen") {
+      categoryDirective = "FOKUS AUDIENS: Dosen (Akademisi Perguruan Tinggi). Gunakan pendekatan riset kritis, bimbingan penulisan karya ilmiah/skripsi, Rencana Pembelajaran Semester (RPS) komprehensif, analisis teoritis tinggi, serta peer-review yang konstruktif.";
+    } else if (category === "Siswa") {
+      categoryDirective = "FOKUS AUDIENS: Siswa/Murid (Pelajar). Gunakan penjelasan ramah, bahasa bersahabat, analogi visual kehidupan sehari-hari, metode mnemonik untuk ingatan, serta kuis latihan asyik untuk belajar mandiri.";
+    } else {
+      categoryDirective = "FOKUS AUDIENS: Umum / Publik Produktif. Gunakan pendekatan produktivitas harian, penulisan email bisnis profesional formal, skenario naskah video edukatif, penjelasan populer, serta tips taktis sehari-hari.";
+    }
+
+    const systemInstruction = `Anda adalah "Generator Prompt EDU", seorang Ahli Rekayasa Prompt (Prompt Engineer) tingkat lanjut yang berdedikasi khusus untuk dunia pendidikan (guru, dosen, pendidik, dan siswa) serta produktivitas edukatif umum.
+Tujuan utama Anda adalah mengubah AI dari sekadar mesin penjawab menjadi asisten pengajar atau asisten belajar yang tangguh bagi guru, dosen, siswa, maupun masyarakat umum.
 Tugas Anda adalah merancang ulang permintaan sederhana pengguna menjadi sebuah Prompt Super yang siap disalin-tempel (copy-paste) ke dalam AI.
 
 Setiap Prompt Super harus dirangkai berdasarkan 4 elemen ini:
-1. Peran (Role): Memberikan konteks dan perspektif. (Contoh: "Bertindaklah sebagai seorang guru fisika SMA yang ramah.")
-2. Tugas (Task): Memberikan instruksi spesifik dan terperinci. (Contoh: "Buat 5 soal pilihan ganda tentang Hukum Newton lengkap dengan kunci jawaban.")
-3. Konteks (Context): Menyertakan batasan dan data pendukung. (Contoh: "Target audiensnya adalah siswa kelas 10, gunakan analogi kehidupan sehari-hari.")
-4. Format (Format): Menspesifikasikan hasil yang diindikasikan/diinginkan. (Contoh: "Sajikan dalam bentuk tabel dengan nada memotivasi, maksimal 300 kata.")
+1. Peran (Role): Memberikan konteks dan perspektif yang sesuai dengan target sasaran.
+2. Tugas (Task): Memberikan instruksi spesifik, terperinci, dan mendalam.
+3. Konteks (Context): Menyertakan batasan relevan, materi pendukung, dan karakteristik audiens.
+4. Format (Format): Menspesifikasikan bentuk keluaran yang diinginkan (tabel, draf email, naskah dua kolom, esai terstruktur, dll).
+
+${categoryDirective}
 
 Hasilkan respons dalam format JSON yang valid dengan struktur berikut:
 {
   "promptSiapPakai": "...", // Tuliskan hasil gabungan dari Role, Task, Context, dan Format menjadi satu paragraf atau blok teks yang utuh, mengalir, dan siap disalin oleh pengguna.
   "struktur": {
-    "role": "...", // Detail peran edukatif yang sesuai
+    "role": "...", // Detail peran edukatif atau profesional yang sesuai
     "task": "...", // Detail tugas spesifik yang harus dikerjakan AI
-    "context": "...", // Detail konteks atau batasan tambahan untuk pembelajaran
-    "format": "..." // Format keluaran yang paling cocok (misalnya tabel, daftar bullet, rpp terstruktur)
+    "context": "...", // Detail konteks atau batasan tambahan untuk pembelajaran/tugas
+    "format": "..." // Format keluaran yang paling cocok
   },
-  "tips": "..." // Berikan satu atau dua kalimat saran singkat bagaimana guru/siswa bisa memodifikasi atau menyesuaikan prompt tersebut di kemudian hari.
+  "tips": "..." // Berikan satu atau dua kalimat saran singkat bagaimana pengguna bisa memodifikasi atau menyesuaikan prompt tersebut di kemudian hari.
 }
 
-Gunakan bahasa Indonesia yang sopan, profesional, ramah, dan mengedukasi pendidik serta peserta didik.`;
+Gunakan bahasa Indonesia yang sopan, profesional, ramah, dan mengedukasi sesuai sasaran audiens.`;
 
     let responseText = "";
     let usedModel = "gemini-3.5-flash";
 
     try {
       const ai = getAiClient();
-      console.log("Mencoba membuat prompt dengan gemini-3.5-flash...");
+      console.log(`Mencoba membuat prompt dengan gemini-3.5-flash untuk kategori ${category}...`);
       const response = await ai.models.generateContent({
         model: "gemini-3.5-flash",
         contents: `Buat prompt super untuk permintaan berikut: "${userRequest}"`,
@@ -143,13 +156,13 @@ Gunakan bahasa Indonesia yang sopan, profesional, ramah, dan mengedukasi pendidi
         responseText = response.text || "";
       } catch (err25: any) {
         console.log("[Status] Model cadangan sibuk. Mengaktifkan algoritma heuristik lokal super cepat...");
-        const fallbackObj = generateLocalFallback(userRequest);
+        const fallbackObj = generateLocalFallback(userRequest, category);
         return res.json(fallbackObj);
       }
     }
 
     if (!responseText) {
-      const fallbackObj = generateLocalFallback(userRequest);
+      const fallbackObj = generateLocalFallback(userRequest, category);
       return res.json(fallbackObj);
     }
 
@@ -160,7 +173,7 @@ Gunakan bahasa Indonesia yang sopan, profesional, ramah, dan mengedukasi pendidi
     console.log("[Status] Terjadi pengecualian. Mengaktifkan algoritma heuristik lokal...");
     // Even if everything else crashes, we return a beautiful local fallback!
     try {
-      const fallbackObj = generateLocalFallback(req.body.userRequest || "");
+      const fallbackObj = generateLocalFallback(req.body.userRequest || "", req.body.category || "Guru");
       return res.json(fallbackObj);
     } catch (nestedErr) {
       res.status(500).json({ error: "Terjadi kesalahan fatal pada server." });
@@ -169,7 +182,7 @@ Gunakan bahasa Indonesia yang sopan, profesional, ramah, dan mengedukasi pendidi
 });
 
 // Heuristic Generator if Gemini API is offline/busy
-function generateLocalFallback(userRequest: string) {
+function generateLocalFallback(userRequest: string, category: string = "Guru") {
   const reqLower = userRequest.toLowerCase();
   
   let role = "Bertindaklah sebagai pendidik profesional dan ahli materi pembelajaran yang kompeten.";
@@ -178,7 +191,35 @@ function generateLocalFallback(userRequest: string) {
   let format = "Sajikan dalam format dokumen terstruktur yang rapi, lengkap dengan poin-poin penting, penjelasan bertahap, dan ringkasan interaktif.";
   let tips = "Tips: Anda dapat menyesuaikan tingkat kelas (misalnya SD/SMP/SMA) atau menambahkan durasi waktu pelaksanaan kegiatan agar lebih presisi.";
 
-  if (reqLower.includes("rpp") || reqLower.includes("fotosintesis") || reqLower.includes("kurikulum") || reqLower.includes("pelajaran") || reqLower.includes("rencana")) {
+  // Use selected category to build a specialized base structure first
+  if (category === "Guru") {
+    role = "Bertindaklah sebagai Guru Senior dan Konsultan Pendidikan Sekolah yang ahli di bidang materi ajar Kurikulum Merdeka.";
+    task = `Rancang modul ajar, rencana pembelajaran (RPP), materi ajar, atau instrumen asesmen yang berfokus pada: "${userRequest}".`;
+    context = "Target audiensnya adalah siswa sekolah yang membutuhkan penjelasan interaktif, keterlibatan aktif, serta pertanyaan pemantik diskusi yang melatih berpikir kritis.";
+    format = "Sajikan dalam format dokumen ajar/RPP yang terstruktur rapi, lengkap dengan poin-poin langkah kegiatan (Pendahuluan, Inti, Penutup), durasi waktu, alat bahan, serta instrumen penilaian.";
+    tips = "Tips: Cantumkan kelompok umur, jenjang kelas (misal: SD/SMP/SMA), serta estimasi alokasi waktu pengajaran agar hasilnya lebih pas.";
+  } else if (category === "Dosen") {
+    role = "Bertindaklah sebagai Profesor/Dosen Senior sekaligus Peneliti Akademik berpengetahuan luas yang aktif menulis publikasi ilmiah.";
+    task = `Susun panduan akademik, telaah kritis (peer review), kerangka silabus/RPS, atau ulasan ilmiah mendalam mengenai: "${userRequest}".`;
+    context = "Target audiens adalah mahasiswa perguruan tinggi, sejawat akademisi, atau peneliti yang mengutamakan ketepatan teori sosiologi/pendidikan, keruntutan gagasan, kebaruan sains (novelty), serta referensi literatur valid.";
+    format = "Sajikan dalam format draf tulisan akademis terstruktur dengan analisis teoretis tajam, argumen yang koheren, serta daftar masukan perbaikan secara profesional.";
+    tips = "Tips: Sebutkan kerangka teori sosiologi/sains tertentu atau pedoman gaya penulisan jurnal (misal: APA/Harvard) yang ingin Anda pakai.";
+  } else if (category === "Siswa" || category === "Murid") {
+    role = "Bertindaklah sebagai Tutor Pembelajaran Efektif (Study Coach) yang asyik, sabar, seru, dan terampil melatih konsep akademis sulit menjadi gampang.";
+    task = `Bantu saya memahami, merangkum, membuat peta pikiran (mind map), atau menyelesaikan materi belajar mandiri terkait: "${userRequest}".`;
+    context = "Saya adalah seorang pelajar/murid yang ingin memahami konsep esensial secara menyeluruh, bersiap menghadapi ujian sekolah, dan menghindari hafalan buta.";
+    format = "Sajikan penjelasan ramah bersahabat secara bertahap dengan analogi kreatif dari kehidupan nyata sehari-hari, batasi rumus-rumus rumit atau istilah kaku tanpa keterangan, dan selipkan satu kuis mini menyenangkan di akhir.";
+    tips = "Tips: Anda bisa meminta tutor ini untuk memberikan jembatan keledai (metode mnemonik) unik agar mempermudah mengingat materi sulit.";
+  } else if (category === "Umum") {
+    role = "Bertindaklah sebagai Asisten Rekayasa Prompt Kreatif, Penulis Profesional, dan Ahli Komunikasi Bisnis yang terampil menyusun rencana taktis.";
+    task = `Bantu saya merancang rencana kegiatan, draf korespondensi email formal, skenario naskah video edukatif, atau tulisan produktivitas mengenai: "${userRequest}".`;
+    context = "Ditujukan untuk keperluan komunikasi umum, profesionalisme kerja, publikasi media sosial, atau penjelasan populer kepada masyarakat luas. Fokuskan pada kejelasan pesan dan persuasivitas yang memikat.";
+    format = "Sajikan dalam draf tulisan siap pakai yang ringkas, berdaya pikat tinggi, mengalir logis, lengkap dengan instruksi teknis pelengkap (seperti petunjuk visual/audio naskah atau subjek surel).";
+    tips = "Tips: Tambahkan info audiens target spesifik (misal: calon mitra usaha, penonton TikTok, atau pelanggan baru) dan batasan panjang tulisan.";
+  }
+
+  // Refine structures if we detect specific keyword matches
+  if (reqLower.includes("rpp") || reqLower.includes("fotosintesis") || reqLower.includes("pelajaran") || reqLower.includes("rencana")) {
     role = "Bertindaklah sebagai ahli kurikulum dan Guru Senior yang berpengalaman dalam menyusun bahan ajar interaktif.";
     task = `Buatlah Rencana Pelaksanaan Pembelajaran (RPP) atau Modul Ajar lengkap untuk topik: "${userRequest}".`;
     context = "Target adalah siswa sekolah dengan fokus pembelajaran aktif. Rencana harus mencakup metode interaktif, pertanyaan pemantik, serta alat/bahan yang dibutuhkan.";
