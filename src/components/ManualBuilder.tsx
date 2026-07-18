@@ -12,12 +12,14 @@ const ROLE_PRESETS = [
   { label: "Dosen Sosiologi (Analitis)", value: "Bertindaklah sebagai dosen sosiologi universitas yang berpengetahuan luas, analitis, dan mendidik dengan pendekatan sosiologis." },
   { label: "Guru SD (Sabar & Kreatif)", value: "Bertindaklah sebagai guru sekolah dasar yang sangat sabar, kreatif, penuh energi, dan mengajar lewat cerita menyenangkan." },
   { label: "Mentor Coding (Santai)", value: "Bertindaklah sebagai mentor pemrograman komputer yang santai, menyukai humor teknologi, dan ahli menyederhanakan kode." },
+  { label: "Art Director Gambar AI (Kreatif)", value: "Bertindaklah sebagai Art Director senior, Fotografer Profesional, dan Pakar Pengarah Gaya Visual AI." },
   { label: "Konselor Sekolah (Empatis)", value: "Bertindaklah sebagai konselor sekolah atau guru bimbingan konseling yang empatis, hangat, ramah, dan bersahabat." },
   { label: "Siswa Belajar Mandiri", value: "Bertindaklah sebagai siswa berprestasi yang sedang merangkum materi secara mandiri dengan bahasa yang mudah diingat." }
 ];
 
 const TASK_PRESETS = [
   { label: "Membuat RPP / Modul Ajar", value: "Buatlah rencana pelaksanaan pembelajaran (RPP) atau modul ajar yang detail untuk satu pertemuan pertemuan kelas." },
+  { label: "Draf Prompt Gambar Sinematik", value: "Rancang draf prompt gambar utama dalam bahasa Inggris yang sangat mendetail, hidup, dan dramatis untuk generator gambar AI (seperti Midjourney)." },
   { label: "Menyusun Soal Kuis (HOTS)", value: "Buatlah 5 butir soal pilihan ganda berbasis analisis kritis tingkat tinggi (HOTS - Higher Order Thinking Skills) lengkap dengan kunci jawaban." },
   { label: "Menjelaskan Konsep Rumit", value: "Jelaskan secara mendalam namun sederhana konsep sains/teoretis yang sering dianggap sulit oleh pelajar." },
   { label: "Memberikan Feedback Ulasan", value: "Berikan ulasan dan umpan balik yang membangun serta mendidik (sandwich feedback) untuk draf esai atau tugas penulisan." },
@@ -26,6 +28,7 @@ const TASK_PRESETS = [
 
 const CONTEXT_PRESETS = [
   { label: "Kurikulum Merdeka (SMP)", value: "Target audiensnya adalah siswa kelas 7 SMP yang menerapkan Kurikulum Merdeka. Gunakan istilah sederhana dan relevan dengan kehidupan mereka sehari-hari." },
+  { label: "Gaya Foto Ultra-Realistic 16:9", value: "Visualisasi wajib mengusung gaya estetika ultra-realistic photorealistic, dengan penataan cinematic lighting hangat, ketajaman detail 8k, serta rasio aspek --ar 16:9." },
   { label: "Siswa SMA Kelas 11 (Fokus)", value: "Target murid adalah kelas 11 SMA. Berikan tantangan pemikiran kritis yang sesuai dengan perkembangan kognitif mereka dan hindari hafalan murni." },
   { label: "Mahasiswa S1 (Akademis)", value: "Pembaca adalah mahasiswa S1 semester awal. Sertakan rujukan teoritis ringan namun dikemas secara menarik agar tidak kaku." },
   { label: "Umum / Orang Awam", value: "Targetnya adalah masyarakat umum yang belum memiliki latar belakang formal di bidang ini. Hindari rumus matematis atau jargon teknis yang membingungkan." }
@@ -33,6 +36,7 @@ const CONTEXT_PRESETS = [
 
 const FORMAT_PRESETS = [
   { label: "Tabel Kegiatan Terstruktur", value: "Sajikan hasil akhir dalam format tabel yang rapi, memuat kolom rincian kegiatan pembelajaran, alokasi waktu, serta poin penting." },
+  { label: "Prompt Inggris & Deskripsi Indonesia", value: "Sajikan draf prompt bahasa Inggris siap pakai secara utuh di dalam sebuah blok kode (code block). Di bawahnya, berikan penjelasan tentang elemen visual pendukung dalam bahasa Indonesia." },
   { label: "Daftar Poin-poin (Bullet)", value: "Sajikan dalam bentuk daftar butir-butir terurut (bullet points) yang ringkas, berbobot, mudah dibaca cepat, dan informatif." },
   { label: "Narasi Ringkas & Analogi", value: "Sajikan penjelasan dalam bentuk narasi pendek (maksimal 400 kata) yang mengalir secara bercerita dilengkapi analogi visual konkret." },
   { label: "Format Dokumen Resmi (Emoji)", value: "Sajikan sebagai laporan atau dokumen terstruktur formal dengan pembagian bab (Pendahuluan, Isi, Penutup) dilengkapi ikon emoji sebagai pemanis visual." }

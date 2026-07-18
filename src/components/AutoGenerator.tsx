@@ -100,7 +100,14 @@ const LOADING_STEPS = [
 ];
 
 // Heuristic Generator if backend is 404, offline, or unavailable (e.g. deployed on static platforms like Vercel)
-export function generateLocalFallback(userRequest: string, category: "Guru" | "Dosen" | "Siswa" | "Umum" | "Gambar" = "Guru") {
+export function generateLocalFallback(
+  userRequest: string,
+  category: "Guru" | "Dosen" | "Siswa" | "Umum" | "Gambar" = "Guru",
+  imageStyle?: string,
+  imageLighting?: string,
+  imageAspectRatio?: string,
+  imageQuality?: string
+) {
   const reqLower = userRequest.toLowerCase();
   
   let role = "Bertindaklah sebagai pendidik profesional dan ahli materi pembelajaran yang kompeten.";
@@ -135,11 +142,16 @@ export function generateLocalFallback(userRequest: string, category: "Guru" | "D
     format = "Sajikan dalam draf tulisan siap pakai yang ringkas, berdaya pikat tinggi, mengalir logis, lengkap dengan instruksi teknis pelengkap (seperti petunjuk visual/audio naskah atau subjek surel).";
     tips = "Tips: Tambahkan info audiens target spesifik (misal: calon mitra usaha, penonton TikTok, atau pelanggan baru) dan batasan panjang tulisan.";
   } else if (category === "Gambar") {
-    role = "Bertindaklah sebagai Art Director, Fotografer Profesional, dan Ahli Pengarah Gaya Visual Kecerdasan Buatan.";
-    task = `Buatkan deskripsi visual/prompt bahasa Inggris yang sangat detail dan spesifik untuk AI Image Generator (seperti Midjourney atau DALL-E 3) mengenai: "${userRequest}".`;
-    context = "Kebutuhan gambar adalah untuk menghasilkan visual berkualitas tinggi, tajam, dengan pencahayaan dramatis (misal: golden hour, volumetric lighting), komposisi sinematik, detail tekstur menawan, serta rasio aspek yang sesuai.";
-    format = "Sajikan teks prompt bahasa Inggris utama yang siap disalin dalam sebuah blok kode (code block), lalu sertakan tips parameter teknis (misalnya rasio aspek --ar, style, quality) serta rekomendasi gaya seni pendukung dalam bahasa Indonesia.";
-    tips = "Tips: Tentukan gaya seni (seperti 3D Render, Watercolor, Photorealistic, Cyberpunk, Oil Painting) agar kecocokan estetika visual makin sempurna.";
+    const style = imageStyle || "Photorealistic";
+    const lighting = imageLighting || "Cinematic Lighting";
+    const ratio = imageAspectRatio || "16:9";
+    const quality = imageQuality || "Ultra-Realistic";
+
+    role = `Bertindaklah sebagai Art Director senior, Fotografer Profesional, dan Pakar Pengarah Gaya Visual AI tingkat lanjut.`;
+    task = `Rancang draf prompt gambar utama dalam bahasa Inggris (English prompt) yang sangat mendetail, hidup, dramatis, dan siap pakai untuk generator gambar AI (seperti Midjourney v6, DALL-E 3, atau Stable Diffusion) untuk menggambarkan: "${userRequest}".`;
+    context = `Visualisasi wajib mengusung gaya estetika "${style}" dengan penataan cahaya "${lighting}". Berikan detail tekstur dan kedalaman yang sangat tajam berpola "${quality}" serta rasio aspek --ar ${ratio}.`;
+    format = `Sajikan draf prompt bahasa Inggris siap pakai secara utuh di dalam sebuah blok kode (code block) diakhiri dengan parameter rasio aspek \`--ar ${ratio}\`. Di bawah blok kode, berikan penjelasan tentang elemen visual pendukung, saran kamera, dan tip modifikasi opsional dalam bahasa Indonesia.`;
+    tips = `Tips: Anda dapat mengubah gaya seni, pencahayaan, atau mengganti parameter aspek rasio (seperti --ar 9:16 untuk video vertikal/TikTok) langsung di bagian belakang prompt.`;
   }
 
   // Refine structures if we detect specific keyword matches
@@ -202,6 +214,12 @@ export default function AutoGenerator({
   const [loadingStep, setLoadingStep] = useState(0);
   const [progress, setProgress] = useState(0);
 
+  // States for Image prompt customization
+  const [imageStyle, setImageStyle] = useState("Photorealistic");
+  const [imageLighting, setImageLighting] = useState("Cinematic Lighting");
+  const [imageAspectRatio, setImageAspectRatio] = useState("16:9");
+  const [imageQuality, setImageQuality] = useState("Ultra-Realistic");
+
   // Cycle loading messages and progress percentage when loading
   useEffect(() => {
     let intervalSteps: NodeJS.Timeout;
@@ -246,7 +264,11 @@ export default function AutoGenerator({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           userRequest: textToGenerate.trim(),
-          category: targetCategory
+          category: targetCategory,
+          imageStyle: targetCategory === "Gambar" ? imageStyle : undefined,
+          imageLighting: targetCategory === "Gambar" ? imageLighting : undefined,
+          imageAspectRatio: targetCategory === "Gambar" ? imageAspectRatio : undefined,
+          imageQuality: targetCategory === "Gambar" ? imageQuality : undefined
         }),
       });
 
@@ -255,7 +277,14 @@ export default function AutoGenerator({
         // or a server error (500/502/503), trigger the client-side fallback gracefully instead of crashing
         if (response.status === 404 || response.status >= 500) {
           console.warn(`Server responded with status ${response.status}. Falling back to high-quality client-side prompt builder.`);
-          data = generateLocalFallback(textToGenerate, targetCategory);
+          data = generateLocalFallback(
+            textToGenerate, 
+            targetCategory,
+            targetCategory === "Gambar" ? imageStyle : undefined,
+            targetCategory === "Gambar" ? imageLighting : undefined,
+            targetCategory === "Gambar" ? imageAspectRatio : undefined,
+            targetCategory === "Gambar" ? imageQuality : undefined
+          );
         } else {
           let errMsg = "Gagal menghubungi server untuk membuat prompt.";
           try {
@@ -276,7 +305,14 @@ export default function AutoGenerator({
     } catch (err: any) {
       console.warn("API Call failed. Utilizing client-side heuristic generator fallback...", err);
       // Perfect seamless fallback for static platforms like Vercel or offline environments
-      data = generateLocalFallback(textToGenerate, targetCategory);
+      data = generateLocalFallback(
+        textToGenerate, 
+        targetCategory,
+        targetCategory === "Gambar" ? imageStyle : undefined,
+        targetCategory === "Gambar" ? imageLighting : undefined,
+        targetCategory === "Gambar" ? imageAspectRatio : undefined,
+        targetCategory === "Gambar" ? imageQuality : undefined
+      );
     }
 
     try {
@@ -407,6 +443,101 @@ export default function AutoGenerator({
           </button>
         </div>
       </div>
+
+      {/* Dynamic Customization Panel for IMAGE Generator */}
+      <AnimatePresence>
+        {selectedCategory === "Gambar" && (
+          <motion.div
+            initial={{ height: 0, opacity: 0, scale: 0.95 }}
+            animate={{ height: "auto", opacity: 1, scale: 1 }}
+            exit={{ height: 0, opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden"
+          >
+            <div className="p-5 bg-rose-50/45 border border-rose-100/60 rounded-2xl flex flex-col gap-4 shadow-sm">
+              <div className="flex items-center gap-2 text-xs font-bold text-rose-800">
+                <Sparkles className="w-4 h-4 text-rose-500 animate-pulse" />
+                <span>🎛️ Konfigurasi Parameter Gambar (Midjourney / DALL-E)</span>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+                {/* 1. Style */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                    Jenis Gambar / Gaya Seni
+                  </label>
+                  <select
+                    value={imageStyle}
+                    onChange={(e) => setImageStyle(e.target.value)}
+                    className="px-3 py-2 bg-white border border-slate-200 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20 rounded-xl text-xs text-slate-700 outline-none transition-colors shadow-sm cursor-pointer"
+                  >
+                    <option value="Photorealistic">Foto Realistik (Photorealistic)</option>
+                    <option value="3D Clay Render">Tactile 3D Clay Render</option>
+                    <option value="Watercolor">Cat Air Klasik (Watercolor)</option>
+                    <option value="Anime Illustration">Anime Key Visual</option>
+                    <option value="Cyberpunk Concept Art">Cyberpunk & Futuristic</option>
+                    <option value="Oil Painting">Lukisan Cat Minyak (Oil Painting)</option>
+                    <option value="Pencil Sketch">Sketsa Pensil (Pencil Sketch)</option>
+                  </select>
+                </div>
+
+                {/* 2. Lighting */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                    Pencahayaan (Lighting)
+                  </label>
+                  <select
+                    value={imageLighting}
+                    onChange={(e) => setImageLighting(e.target.value)}
+                    className="px-3 py-2 bg-white border border-slate-200 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20 rounded-xl text-xs text-slate-700 outline-none transition-colors shadow-sm cursor-pointer"
+                  >
+                    <option value="Cinematic Lighting">Sinematik Dramatis</option>
+                    <option value="Golden Hour">Golden Hour (Senja Hangat)</option>
+                    <option value="Studio Soft Light">Studio Soft Light (Bersih)</option>
+                    <option value="Volumetric Foggy Light">Volumetric / Berkabut</option>
+                    <option value="Neon Glow">Neon Glow (Cyberpunk/Malam)</option>
+                  </select>
+                </div>
+
+                {/* 3. Aspect Ratio */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                    Aspek Rasio (Aspect Ratio)
+                  </label>
+                  <select
+                    value={imageAspectRatio}
+                    onChange={(e) => setImageAspectRatio(e.target.value)}
+                    className="px-3 py-2 bg-white border border-slate-200 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20 rounded-xl text-xs text-slate-700 outline-none transition-colors shadow-sm cursor-pointer"
+                  >
+                    <option value="16:9">16:9 (Layar Lebar / Landscape)</option>
+                    <option value="1:1">1:1 (Kotak / Instagram)</option>
+                    <option value="9:16">9:16 (Vertikal / Story / TikTok)</option>
+                    <option value="4:3">4:3 (Klasik Kamera)</option>
+                    <option value="21:9">21:9 (Ultrawide Bioskop)</option>
+                  </select>
+                </div>
+
+                {/* 4. Quality */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                    Kualitas / Ketajaman
+                  </label>
+                  <select
+                    value={imageQuality}
+                    onChange={(e) => setImageQuality(e.target.value)}
+                    className="px-3 py-2 bg-white border border-slate-200 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20 rounded-xl text-xs text-slate-700 outline-none transition-colors shadow-sm cursor-pointer"
+                  >
+                    <option value="Ultra-Realistic">Ultra-Realistic (8k, DSLR)</option>
+                    <option value="Epic Cinematic Concept">Epic Cinematic Concept</option>
+                    <option value="Stylized Artistic Masterpiece">Stylized Artistic Masterpiece</option>
+                    <option value="Minimalist Clean Design">Minimalist Clean Design</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Input Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">

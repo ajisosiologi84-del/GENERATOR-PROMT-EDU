@@ -35,7 +35,15 @@ app.use(express.json());
 // API route for generating prompts using Gemini with robust fallbacks
 app.post("/api/generate-prompt", async (req, res) => {
   try {
-    const { userRequest, category = "Guru" } = req.body;
+    const { 
+      userRequest, 
+      category = "Guru",
+      imageStyle,
+      imageLighting,
+      imageAspectRatio,
+      imageQuality
+    } = req.body;
+    
     if (!userRequest || typeof userRequest !== "string") {
       return res.status(400).json({ error: "Permintaan tidak boleh kosong." });
     }
@@ -48,7 +56,21 @@ app.post("/api/generate-prompt", async (req, res) => {
     } else if (category === "Siswa") {
       categoryDirective = "FOKUS AUDIENS: Siswa/Murid (Pelajar). Gunakan penjelasan ramah, bahasa bersahabat, analogi visual kehidupan sehari-hari, metode mnemonik untuk ingatan, serta kuis latihan asyik untuk belajar mandiri. Rancang agar asisten siap dipakai di Gemini AI atau NotebookLM untuk membedah slide kuliah atau buku pelajaran yang diunggah.";
     } else if (category === "Gambar") {
-      categoryDirective = "FOKUS AUDIENS: Pembuat Gambar / Kreator Media Visual (pengguna Midjourney, DALL-E, Stable Diffusion, Imagen). Bertindaklah sebagai Art Director senior. Susun draf prompt bahasa Inggris yang komprehensif, fotorealistik, sinematik, atau bergaya lukisan/art spesifik yang menakjubkan sesuai permintaan pengguna. Sertakan parameter teknis seperti aspek rasio (--ar), detail kamera, pencahayaan dramatis, jenis lensa, dan gaya seni. Sajikan draf utama bahasa Inggris di dalam blok kode (code block) agar mudah disalin, diikuti tips/pilihan kustomisasi bahasa Indonesia.";
+      const style = imageStyle || "Photorealistic";
+      const lighting = imageLighting || "Cinematic Lighting";
+      const ratio = imageAspectRatio || "16:9";
+      const quality = imageQuality || "Ultra-Realistic";
+
+      categoryDirective = `FOKUS AUDIENS: Pembuat Gambar / Kreator Media Visual (pengguna Midjourney, DALL-E, Stable Diffusion). Bertindaklah sebagai Art Director senior sekaligus Fotografer Komersial berpengalaman. 
+Susun draf prompt bahasa Inggris utama yang sangat mendalam, detail, sinematik, artistik, dan siap pakai sesuai spesifikasi khusus berikut:
+- Ide Dasar/Topik: "${userRequest}"
+- Gaya Estetika Visual: "${style}"
+- Sistem Tata Cahaya (Lighting): "${lighting}"
+- Kualitas Detail/Ketajaman: "${quality}"
+- Rasio Aspek (Aspect Ratio): "${ratio}"
+
+Wajib sertakan parameter rasio aspek Midjourney \`--ar ${ratio}\` (atau parameter setara untuk DALL-E) tepat di bagian akhir teks prompt bahasa Inggris Anda di dalam blok kode.
+Sajikan draf utama bahasa Inggris secara utuh di dalam sebuah blok kode (code block) agar mudah dicopy secara utuh, diikuti rincian tips kamera, kombinasi artistik tambahan, dan saran instruksi negatif (negative prompt) dalam bahasa Indonesia di bawahnya.`;
     } else {
       categoryDirective = "FOKUS AUDIENS: Umum / Publik Produktif. Gunakan pendekatan produktivitas harian, penulisan email bisnis profesional formal, skenario naskah video edukatif, penjelasan populer, serta tips taktis sehari-hari. Sesuaikan agar asisten bekerja maksimal di Gemini AI untuk menyusun rencana kerja terstruktur atau draf korespondensi.";
     }
