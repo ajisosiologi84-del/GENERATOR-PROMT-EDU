@@ -26,11 +26,11 @@ const ICON_MAP: Record<string, any> = {
 };
 
 export default function PresetList({ onSelectPreset }: PresetListProps) {
-  const [selectedFilter, setSelectedFilter] = useState<"Semua" | "Guru" | "Dosen" | "Siswa" | "Umum">("Semua");
+  const [selectedFilter, setSelectedFilter] = useState<"Semua" | "Guru" | "Dosen" | "Siswa" | "Umum" | "Gambar">("Semua");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const categories: Array<"Semua" | "Guru" | "Dosen" | "Siswa" | "Umum"> = [
-    "Semua", "Guru", "Dosen", "Siswa", "Umum"
+  const categories: Array<"Semua" | "Guru" | "Dosen" | "Siswa" | "Umum" | "Gambar"> = [
+    "Semua", "Guru", "Dosen", "Siswa", "Umum", "Gambar"
   ];
 
   const filteredTemplates = PRESET_TEMPLATES.filter((preset) => {
@@ -49,7 +49,7 @@ export default function PresetList({ onSelectPreset }: PresetListProps) {
         <div className="flex flex-col gap-1 max-w-xl">
           <h3 className="text-sm font-semibold text-slate-800 font-display">Inspirasi Template Siap Pakai</h3>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Eksplorasi blueprint prompt edukatif terstruktur yang dirancang khusus untuk memenuhi standar keahlian pengajaran, kepenulisan akademis, bimbingan, hingga produktivitas harian.
+            Eksplorasi blueprint prompt edukatif terstruktur yang dirancang khusus untuk memenuhi standar keahlian pengajaran, kepenulisan akademis, bimbingan, hingga pembuatan media gambar AI kreatif.
           </p>
         </div>
       </div>
@@ -61,7 +61,7 @@ export default function PresetList({ onSelectPreset }: PresetListProps) {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Cari kata kunci template (misal: RPP, esai, python, kuis, email...)"
+            placeholder="Cari kata kunci template (misal: RPP, esai, python, kuis, gambar, borobudur...)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 transition-all shadow-sm placeholder:text-slate-400"
@@ -82,7 +82,7 @@ export default function PresetList({ onSelectPreset }: PresetListProps) {
               }`}
               id={`preset-tab-${cat.toLowerCase()}`}
             >
-              {cat === "Semua" ? "✨ Semua Kategori" : cat === "Guru" ? "🎭 Guru (Sekolah)" : cat === "Dosen" ? "🎓 Dosen (Akademis)" : cat === "Siswa" ? "📖 Murid / Siswa" : "🌍 Umum (Produktif)"}
+              {cat === "Semua" ? "✨ Semua Kategori" : cat === "Guru" ? "🎭 Guru (Sekolah)" : cat === "Dosen" ? "🎓 Dosen (Akademis)" : cat === "Siswa" ? "📖 Murid / Siswa" : cat === "Gambar" ? "🎨 Pembuat Gambar" : "🌍 Umum / Lainnya"}
             </button>
           ))}
         </div>
@@ -114,9 +114,11 @@ export default function PresetList({ onSelectPreset }: PresetListProps) {
                         ? "bg-purple-50 text-purple-700 border border-purple-100"
                         : preset.category === "Siswa"
                         ? "bg-teal-50 text-teal-700 border border-teal-100"
+                        : preset.category === "Gambar"
+                        ? "bg-rose-50 text-rose-700 border border-rose-100"
                         : "bg-amber-50 text-amber-700 border border-amber-100"
                     }`}>
-                      {preset.category === "Guru" ? "Guru (Sekolah)" : preset.category === "Dosen" ? "Dosen (Kampus)" : preset.category === "Siswa" ? "Murid / Siswa" : "Umum / Publik"}
+                      {preset.category === "Guru" ? "Guru (Sekolah)" : preset.category === "Dosen" ? "Dosen (Kampus)" : preset.category === "Siswa" ? "Murid / Siswa" : preset.category === "Gambar" ? "Desain Gambar AI" : "Umum / Publik"}
                     </span>
                   </div>
 

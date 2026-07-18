@@ -196,5 +196,47 @@ export const PRESET_TEMPLATES: PresetTemplate[] = [
       context: "Platform target adalah TikTok atau Instagram Reels dengan demografi audiens milenial dan Gen-Z. Naskah harus diawali dengan 'Hook' emosional/pertanyaan pemantik 3 detik pertama untuk menahan atensi penonton agar tidak berpindah video.",
       format: "Sajikan naskah dalam format naskah dua kolom: (1) Kolom Petunjuk Visual (pergerakan kamera, ekspresi, transisi), (2) Kolom Audio (kalimat lisan narator, efek suara, backsound), diakhiri dengan ajakan bertindak (CTA) interaksi kolom komentar."
     }
+  },
+  {
+    id: "foto-sejarah-realistik",
+    title: "Foto Sejarah Realistik Borobudur",
+    category: "Gambar",
+    description: "Rakit prompt foto ultra-realistik rekonstruksi sejarah Candi Borobudur abad ke-9.",
+    icon: "Compass",
+    userRequest: "Buatkan prompt foto suasana pembangunan Candi Borobudur zaman dulu yang sangat realistik dan detail.",
+    defaultStructure: {
+      role: "Bertindaklah sebagai Art Director, Ahli Sejarah Nusantara, dan Fotografer Profesional peraih penghargaan National Geographic.",
+      task: "Susun prompt gambar bahasa Inggris yang sangat detail untuk AI Image Generator (seperti Midjourney v6 atau DALL-E 3) yang menggambarkan proses konstruksi Candi Borobudur di abad ke-9.",
+      context: "Adegan menampilkan ratusan pekerja berbusana tradisional Jawa kuno sedang mengukir relief batu andesit dengan latar belakang candi setengah jadi yang diselimuti kabut pagi tropis yang dramatis. Pencahayaan matahari terbit yang hangat (golden hour light), detail partikel debu beterbangan, sudut pandang kamera lebar (wide-angle cinematic shot), kedalaman ruang (shallow depth of field).",
+      format: "Sajikan prompt utama dalam bahasa Inggris di dalam blok kode (code block) agar mudah disalin, diikuti penjelasan elemen estetis (gaya, pencahayaan, sudut kamera, parameter rasio --ar 16:9) dalam bahasa Indonesia."
+    }
+  },
+  {
+    id: "ilustrasi-cat-air",
+    title: "Ilustrasi Cat Air Metamorfosis",
+    category: "Gambar",
+    description: "Rancang prompt ilustrasi watercolor bertahap daur hidup kupu-kupu untuk buku anak.",
+    icon: "PenTool",
+    userRequest: "Buat prompt ilustrasi cat air daur hidup kupu-kupu yang lucu dan estetik buat buku pelajaran SD.",
+    defaultStructure: {
+      role: "Bertindaklah sebagai Ilustrator Buku Anak-anak profesional dan Desainer Media Edukasi Visual.",
+      task: "Rancang prompt gambar dalam bahasa Inggris untuk Midjourney atau DALL-E 3 untuk membuat ilustrasi seri metamorfosis kupu-kupu.",
+      context: "Gaya yang diminta adalah lukisan cat air (watercolor illustration) yang lembut dengan palet warna pastel hangat, garis kuas yang bersih (clean brush strokes), tanpa latar belakang kaku (isolated on clean white background). Adegan mencakup ulat lucu di atas daun hijau, kepompong menggantung di dahan kayu, dan kupu-kupu cantik yang baru keluar mengepakkan sayapnya secara artistik dan ramah anak.",
+      format: "Sajikan prompt bahasa Inggris siap pakai yang diapit tanda kutip tebal, disusul dengan tips variasi warna atau penambahan objek sekunder dalam bahasa Indonesia yang ringkas."
+    }
+  },
+  {
+    id: "karakter-3d-imut",
+    title: "Karakter 3D Clay Maskot Belajar",
+    category: "Gambar",
+    description: "Bikin prompt karakter 3D clay lucu berbentuk burung hantu akademis untuk presentasi sekolah.",
+    icon: "Sparkles",
+    userRequest: "Minta prompt untuk bikin karakter maskot burung hantu pintar gaya 3D clay / boneka lilin imut.",
+    defaultStructure: {
+      role: "Bertindaklah sebagai Desainer Karakter 3D, Senior 3D Artist Pixar, dan Pengembang Brand Edukasi.",
+      task: "Buatlah prompt rekayasa gambar bahasa Inggris berpresisi tinggi untuk model Stable Diffusion atau Midjourney untuk memvisualisasikan maskot burung hantu.",
+      context: "Karakter berupa burung hantu lucu mengenakan kacamata bulat besar dan topi wisuda, memegang buku tebal dengan kedua sayapnya. Gaya visual adalah 'Cute 3D claymation art style' atau mainan plastik mengkilap (toy clay render), renderan studio bersih (clean studio lighting), warna-warna cerah ceria (vibrant primary colors), latar belakang warna solid pastel lembut yang terisolasi.",
+      format: "Berikan prompt bahasa Inggris utama yang sangat dioptimalkan, ditambahkan parameter rendering khusus seperti '--v 6.0 --style raw --ar 1:1' dan petunjuk cara mengubah ekspresi burung hantu tersebut."
+    }
   }
 ];

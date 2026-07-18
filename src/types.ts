@@ -18,7 +18,7 @@ export interface GeneratedPrompt {
 export interface PresetTemplate {
   id: string;
   title: string;
-  category: "Guru" | "Dosen" | "Siswa" | "Umum";
+  category: "Guru" | "Dosen" | "Siswa" | "Umum" | "Gambar";
   description: string;
   icon: string;
   userRequest: string;

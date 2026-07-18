@@ -102,7 +102,19 @@ export default function App() {
       const generated: GeneratedPrompt = {
         id: preset.id,
         userRequest: preset.title,
-        promptSiapPakai: `${preset.defaultStructure.role}\n\n${preset.defaultStructure.task}\n\n${preset.defaultStructure.context}\n\n${preset.defaultStructure.format}`,
+        promptSiapPakai: `# PROMPT ASISTEN INTELLIGENT [OPTIMAL UNTUK GEMINI AI & NOTEBOOKLM]
+
+### 🎭 PERAN (ROLE)
+${preset.defaultStructure.role}
+
+### 📋 TUGAS (TASK)
+${preset.defaultStructure.task}
+
+### 📌 KONTEKS (CONTEXT)
+${preset.defaultStructure.context}${preset.category !== "Gambar" ? '\n\n*(Catatan Khusus NotebookLM: Jika dijalankan di NotebookLM, asisten ini wajib memprioritaskan analisis berdasarkan file dokumen rujukan atau sumber data (sources) yang Anda unggah.)*' : ''}
+
+### 📊 FORMAT OUTPUT (FORMAT)
+${preset.defaultStructure.format}`,
         struktur: preset.defaultStructure,
         tips: "Ini adalah blueprint terstruktur untuk mempercepat pembuatan prompt Anda. Salin dan sesuaikan isinya.",
         createdAt: new Date().toISOString(),
@@ -136,7 +148,7 @@ export default function App() {
                 <span className="text-[10px] uppercase font-bold tracking-widest bg-teal-500/25 text-teal-400 px-2 py-0.5 rounded-full border border-teal-500/35">v1.5</span>
               </div>
               <p className="text-xs text-slate-400 mt-1 max-w-xl">
-                Asisten kecerdasan rekayasa prompt (Prompt Engineering) khusus untuk merancang instruksi asisten pembelajaran guru, dosen, dan murid.
+                Asisten kecerdasan rekayasa prompt (Prompt Engineering) untuk merancang instruksi asisten pengajaran guru, dosen, murid, hingga perakitan prompt gambar AI kreatif.
               </p>
             </div>
           </div>
@@ -340,6 +352,27 @@ export default function App() {
                         id="start-shortcut-sejarah"
                       >
                         <span>Kuis Sejarah Indonesia</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-600 group-hover:translate-x-0.5 transition-all" />
+                      </button>
+                      <button 
+                        onClick={() => handleSelectPreset({
+                          id: "foto-sejarah-realistik",
+                          title: "Foto Sejarah Realistik Borobudur",
+                          category: "Gambar",
+                          description: "",
+                          icon: "Sparkles",
+                          userRequest: "",
+                          defaultStructure: {
+                            role: "Bertindaklah sebagai Art Director, Ahli Sejarah Nusantara, dan Fotografer Profesional.",
+                            task: "Susun prompt gambar bahasa Inggris yang sangat detail untuk AI Image Generator (seperti Midjourney v6 atau DALL-E 3) yang menggambarkan proses konstruksi Candi Borobudur di abad ke-9.",
+                            context: "Adegan menampilkan ratusan pekerja berbusana tradisional Jawa kuno sedang mengukir relief batu andesit dengan latar belakang candi setengah jadi yang diselimuti kabut pagi tropis yang dramatis. Pencahayaan matahari terbit yang hangat (golden hour light), detail partikel debu beterbangan, sudut pandang kamera lebar (wide-angle cinematic shot), kedalaman ruang (shallow depth of field).",
+                            format: "Sajikan prompt utama dalam bahasa Inggris di dalam blok kode (code block) agar mudah disalin, diikuti penjelasan elemen estetis (gaya, pencahayaan, sudut kamera, parameter rasio --ar 16:9) dalam bahasa Indonesia."
+                          }
+                        })}
+                        className="text-left w-full px-4 py-2.5 bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-100 rounded-xl text-xs text-slate-700 font-medium transition-all flex items-center justify-between group cursor-pointer"
+                        id="start-shortcut-borobudur"
+                      >
+                        <span>Prompt Gambar Borobudur Abad ke-9</span>
                         <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-600 group-hover:translate-x-0.5 transition-all" />
                       </button>
                     </div>

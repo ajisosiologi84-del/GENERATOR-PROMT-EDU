@@ -65,10 +65,11 @@ export default function ManualBuilder({ onPromptGenerated }: ManualBuilderProps)
     const finalFormat = useCustomFormat ? customFormat : format;
 
     const parts = [];
-    if (finalRole.trim()) parts.push(finalRole.trim());
-    if (finalTask.trim()) parts.push(finalTask.trim());
-    if (finalContext.trim()) parts.push(finalContext.trim());
-    if (finalFormat.trim()) parts.push(finalFormat.trim());
+    parts.push("# PROMPT ASISTEN INTELLIGENT [OPTIMAL UNTUK GEMINI AI & NOTEBOOKLM]");
+    if (finalRole.trim()) parts.push(`### 🎭 PERAN (ROLE)\n${finalRole.trim()}`);
+    if (finalTask.trim()) parts.push(`### 📋 TUGAS (TASK)\n${finalTask.trim()}`);
+    if (finalContext.trim()) parts.push(`### 📌 KONTEKS (CONTEXT)\n${finalContext.trim()}\n\n*(Catatan Khusus NotebookLM: Jika dijalankan di NotebookLM, asisten ini wajib memprioritaskan analisis berdasarkan file dokumen rujukan atau sumber data (sources) yang Anda unggah.)*`);
+    if (finalFormat.trim()) parts.push(`### 📊 FORMAT OUTPUT (FORMAT)\n${finalFormat.trim()}`);
 
     setCompiledPrompt(parts.join("\n\n"));
   }, [

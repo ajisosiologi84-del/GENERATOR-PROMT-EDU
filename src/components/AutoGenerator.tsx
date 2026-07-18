@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from "react";
 import { GeneratedPrompt } from "../types";
-import { Wand2, Sparkles, ArrowRight, Lightbulb, AlertCircle, BookOpen, GraduationCap, Users, Bookmark } from "lucide-react";
+import { Wand2, Sparkles, ArrowRight, Lightbulb, AlertCircle, BookOpen, GraduationCap, Users, Bookmark, Image } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface AutoGeneratorProps {
@@ -65,6 +65,20 @@ const QUICK_TESTS_BY_CATEGORY = {
       label: "Naskah Video Reels/TikTok Edukatif",
       request: "Tulis naskah video berdurasi 60 detik tentang penjelasan sosiologi mengapa manusia senang bergosip."
     }
+  ],
+  Gambar: [
+    {
+      label: "Foto Sejarah Borobudur Realistik",
+      request: "Buat prompt gambar rekonstruksi pembangunan Candi Borobudur abad ke-9 yang realistik, detail tinggi, golden hour lighting."
+    },
+    {
+      label: "Ilustrasi Cat Air Metamorfosis",
+      request: "Rancang prompt ilustrasi watercolor daur hidup kupu-kupu yang imut dan estetis untuk media belajar anak SD."
+    },
+    {
+      label: "Maskot 3D Clay Burung Hantu",
+      request: "Buat prompt karakter mainan 3D clay burung hantu pintar memakai kacamata memegang buku tebal dengan clean studio lighting."
+    }
   ]
 };
 
@@ -72,7 +86,8 @@ const PLACEHOLDERS_BY_CATEGORY = {
   Guru: "Contoh: Buatkan modul ajar interaktif fisika SMA tentang hukum Newton dengan aktivitas praktikum...",
   Dosen: "Contoh: Berikan umpan balik konstruktif akademik terhadap draf artikel jurnal sosiologi pembangunan mahasiswa...",
   Siswa: "Contoh: Jelaskan secara sederhana cara kerja listrik dinamis disertai analogi air mengalir untuk anak SMP...",
-  Umum: "Contoh: Susun draf email formal pengajuan kemitraan program CSR universitas ke startup teknologi..."
+  Umum: "Contoh: Susun draf email formal pengajuan kemitraan program CSR universitas ke startup teknologi...",
+  Gambar: "Contoh: Desain foto pemandangan pegunungan bersalju di Swiss, ultra-realistik, cinematic lighting, aspect ratio 16:9..."
 };
 
 const LOADING_STEPS = [
@@ -85,7 +100,7 @@ const LOADING_STEPS = [
 ];
 
 // Heuristic Generator if backend is 404, offline, or unavailable (e.g. deployed on static platforms like Vercel)
-export function generateLocalFallback(userRequest: string, category: "Guru" | "Dosen" | "Siswa" | "Umum" = "Guru") {
+export function generateLocalFallback(userRequest: string, category: "Guru" | "Dosen" | "Siswa" | "Umum" | "Gambar" = "Guru") {
   const reqLower = userRequest.toLowerCase();
   
   let role = "Bertindaklah sebagai pendidik profesional dan ahli materi pembelajaran yang kompeten.";
@@ -119,6 +134,12 @@ export function generateLocalFallback(userRequest: string, category: "Guru" | "D
     context = "Ditujukan untuk keperluan komunikasi umum, profesionalisme kerja, publikasi media sosial, atau penjelasan populer kepada masyarakat luas. Fokuskan pada kejelasan pesan dan persuasivitas yang memikat.";
     format = "Sajikan dalam draf tulisan siap pakai yang ringkas, berdaya pikat tinggi, mengalir logis, lengkap dengan instruksi teknis pelengkap (seperti petunjuk visual/audio naskah atau subjek surel).";
     tips = "Tips: Tambahkan info audiens target spesifik (misal: calon mitra usaha, penonton TikTok, atau pelanggan baru) dan batasan panjang tulisan.";
+  } else if (category === "Gambar") {
+    role = "Bertindaklah sebagai Art Director, Fotografer Profesional, dan Ahli Pengarah Gaya Visual Kecerdasan Buatan.";
+    task = `Buatkan deskripsi visual/prompt bahasa Inggris yang sangat detail dan spesifik untuk AI Image Generator (seperti Midjourney atau DALL-E 3) mengenai: "${userRequest}".`;
+    context = "Kebutuhan gambar adalah untuk menghasilkan visual berkualitas tinggi, tajam, dengan pencahayaan dramatis (misal: golden hour, volumetric lighting), komposisi sinematik, detail tekstur menawan, serta rasio aspek yang sesuai.";
+    format = "Sajikan teks prompt bahasa Inggris utama yang siap disalin dalam sebuah blok kode (code block), lalu sertakan tips parameter teknis (misalnya rasio aspek --ar, style, quality) serta rekomendasi gaya seni pendukung dalam bahasa Indonesia.";
+    tips = "Tips: Tentukan gaya seni (seperti 3D Render, Watercolor, Photorealistic, Cyberpunk, Oil Painting) agar kecocokan estetika visual makin sempurna.";
   }
 
   // Refine structures if we detect specific keyword matches
@@ -148,7 +169,19 @@ export function generateLocalFallback(userRequest: string, category: "Guru" | "D
     tips = "Tips: Anda bisa menyematkan batasan kata (misalnya 'maksimal 300 kata') untuk mengontrol kerapatan informasi.";
   }
 
-  const promptSiapPakai = `${role}\n\n${task}\n\n${context}\n\n${format}`;
+  const promptSiapPakai = `# PROMPT ASISTEN INTELLIGENT [OPTIMAL UNTUK GEMINI AI & NOTEBOOKLM]
+
+### 🎭 PERAN (ROLE)
+${role}
+
+### 📋 TUGAS (TASK)
+${task}
+
+### 📌 KONTEKS (CONTEXT)
+${context}${category !== "Gambar" ? '\n\n*(Catatan Khusus NotebookLM: Jika dijalankan di NotebookLM, asisten ini wajib memprioritaskan analisis berdasarkan file dokumen rujukan atau sumber data (sources) yang Anda unggah.)*' : ''}
+
+### 📊 FORMAT OUTPUT (FORMAT)
+${format}`;
 
   return {
     promptSiapPakai,
@@ -163,7 +196,7 @@ export default function AutoGenerator({
   isLoading,
   setIsLoading,
 }: AutoGeneratorProps) {
-  const [selectedCategory, setSelectedCategory] = useState<"Guru" | "Dosen" | "Siswa" | "Umum">("Guru");
+  const [selectedCategory, setSelectedCategory] = useState<"Guru" | "Dosen" | "Siswa" | "Umum" | "Gambar">("Guru");
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -200,7 +233,7 @@ export default function AutoGenerator({
     };
   }, [isLoading]);
 
-  const handleGenerate = async (textToGenerate: string, overrideCategory?: "Guru" | "Dosen" | "Siswa" | "Umum") => {
+  const handleGenerate = async (textToGenerate: string, overrideCategory?: "Guru" | "Dosen" | "Siswa" | "Umum" | "Gambar") => {
     const targetCategory = overrideCategory || selectedCategory;
     if (!textToGenerate.trim()) return;
     setIsLoading(true);
@@ -296,7 +329,7 @@ export default function AutoGenerator({
           <Bookmark className="w-3.5 h-3.5 text-teal-600" />
           1. Pilih Target Sasaran Asisten
         </label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200" id="generator-target-category">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200" id="generator-target-category">
           <button
             type="button"
             onClick={() => {
@@ -356,6 +389,21 @@ export default function AutoGenerator({
           >
             <Sparkles className="w-4 h-4 text-amber-500" />
             Umum
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedCategory("Gambar");
+              if (!input) setInput("");
+            }}
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer col-span-2 sm:col-span-1 ${
+              selectedCategory === "Gambar"
+                ? "bg-white text-teal-700 shadow-sm"
+                : "text-slate-600 hover:bg-slate-50/50"
+            }`}
+          >
+            <Image className="w-4 h-4 text-rose-500" />
+            Gambar
           </button>
         </div>
       </div>

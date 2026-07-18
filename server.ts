@@ -42,37 +42,52 @@ app.post("/api/generate-prompt", async (req, res) => {
 
     let categoryDirective = "";
     if (category === "Guru") {
-      categoryDirective = "FOKUS AUDIENS: Guru (Pendidik Sekolah Dasar/Menengah). Gunakan pendekatan Kurikulum (seperti Kurikulum Merdeka), rencana modul ajar/RPP, pertanyaan pemantik, materi interaktif kelas, serta rubrik penilaian yang praktis.";
+      categoryDirective = "FOKUS AUDIENS: Guru (Pendidik Sekolah Dasar/Menengah). Gunakan pendekatan Kurikulum (seperti Kurikulum Merdeka), rencana modul ajar/RPP, pertanyaan pemantik, materi interaktif kelas, serta rubrik penilaian yang praktis. Optimalkan agar prompt ini sangat kuat ketika ditempelkan ke Gemini AI atau NotebookLM bersamaan dengan dokumen kurikulum/bahan ajar.";
     } else if (category === "Dosen") {
-      categoryDirective = "FOKUS AUDIENS: Dosen (Akademisi Perguruan Tinggi). Gunakan pendekatan riset kritis, bimbingan penulisan karya ilmiah/skripsi, Rencana Pembelajaran Semester (RPS) komprehensif, analisis teoritis tinggi, serta peer-review yang konstruktif.";
+      categoryDirective = "FOKUS AUDIENS: Dosen (Akademisi Perguruan Tinggi). Gunakan pendekatan riset kritis, bimbingan penulisan karya ilmiah/skripsi, Rencana Pembelajaran Semester (RPS) komprehensif, analisis teoritis tinggi, serta peer-review yang konstruktif. Optimalkan asisten agar siap bekerja di NotebookLM guna menganalisis paper/literatur penelitian yang diunggah secara mendalam.";
     } else if (category === "Siswa") {
-      categoryDirective = "FOKUS AUDIENS: Siswa/Murid (Pelajar). Gunakan penjelasan ramah, bahasa bersahabat, analogi visual kehidupan sehari-hari, metode mnemonik untuk ingatan, serta kuis latihan asyik untuk belajar mandiri.";
+      categoryDirective = "FOKUS AUDIENS: Siswa/Murid (Pelajar). Gunakan penjelasan ramah, bahasa bersahabat, analogi visual kehidupan sehari-hari, metode mnemonik untuk ingatan, serta kuis latihan asyik untuk belajar mandiri. Rancang agar asisten siap dipakai di Gemini AI atau NotebookLM untuk membedah slide kuliah atau buku pelajaran yang diunggah.";
+    } else if (category === "Gambar") {
+      categoryDirective = "FOKUS AUDIENS: Pembuat Gambar / Kreator Media Visual (pengguna Midjourney, DALL-E, Stable Diffusion, Imagen). Bertindaklah sebagai Art Director senior. Susun draf prompt bahasa Inggris yang komprehensif, fotorealistik, sinematik, atau bergaya lukisan/art spesifik yang menakjubkan sesuai permintaan pengguna. Sertakan parameter teknis seperti aspek rasio (--ar), detail kamera, pencahayaan dramatis, jenis lensa, dan gaya seni. Sajikan draf utama bahasa Inggris di dalam blok kode (code block) agar mudah disalin, diikuti tips/pilihan kustomisasi bahasa Indonesia.";
     } else {
-      categoryDirective = "FOKUS AUDIENS: Umum / Publik Produktif. Gunakan pendekatan produktivitas harian, penulisan email bisnis profesional formal, skenario naskah video edukatif, penjelasan populer, serta tips taktis sehari-hari.";
+      categoryDirective = "FOKUS AUDIENS: Umum / Publik Produktif. Gunakan pendekatan produktivitas harian, penulisan email bisnis profesional formal, skenario naskah video edukatif, penjelasan populer, serta tips taktis sehari-hari. Sesuaikan agar asisten bekerja maksimal di Gemini AI untuk menyusun rencana kerja terstruktur atau draf korespondensi.";
     }
 
-    const systemInstruction = `Anda adalah "Generator Prompt EDU", seorang Ahli Rekayasa Prompt (Prompt Engineer) tingkat lanjut yang berdedikasi khusus untuk dunia pendidikan (guru, dosen, pendidik, dan siswa) serta produktivitas edukatif umum.
+    const systemInstruction = `Anda adalah "Generator Prompt EDU", seorang Ahli Rekayasa Prompt (Prompt Engineer) tingkat lanjut yang berdedikasi khusus untuk dunia pendidikan (guru, dosen, pendidik, dan siswa) serta produktivitas edukatif umum, khususnya dalam menyusun prompt siap pakai yang dioptimalkan untuk GEMINI AI dan NOTEBOOKLM.
 Tujuan utama Anda adalah mengubah AI dari sekadar mesin penjawab menjadi asisten pengajar atau asisten belajar yang tangguh bagi guru, dosen, siswa, maupun masyarakat umum.
-Tugas Anda adalah merancang ulang permintaan sederhana pengguna menjadi sebuah Prompt Super yang siap disalin-tempel (copy-paste) ke dalam AI.
+Tugas Anda adalah merancang ulang permintaan sederhana pengguna menjadi sebuah Prompt Super yang siap disalin-tempel (copy-paste) ke dalam Gemini AI atau NotebookLM.
 
-Setiap Prompt Super harus dirangkai berdasarkan 4 elemen ini:
-1. Peran (Role): Memberikan konteks dan perspektif yang sesuai dengan target sasaran.
-2. Tugas (Task): Memberikan instruksi spesifik, terperinci, dan mendalam.
-3. Konteks (Context): Menyertakan batasan relevan, materi pendukung, dan karakteristik audiens.
-4. Format (Format): Menspesifikasikan bentuk keluaran yang diinginkan (tabel, draf email, naskah dua kolom, esai terstruktur, dll).
+Setiap Prompt Super wajib dirangkai menggunakan struktur rapi berikut di dalam properti "promptSiapPakai":
+
+# PROMPT ASISTEN INTELLIGENT [OPTIMAL UNTUK GEMINI AI & NOTEBOOKLM]
+
+### 🎭 PERAN (ROLE)
+[Detail peran di sini, misal: Bertindaklah sebagai seorang guru Fisika SMA senior...]
+
+### 📋 TUGAS (TASK)
+[Detail tugas spesifik dan mendalam di sini, misal: Buatkan kuis interaktif atau RPP...]
+
+### 📌 KONTEKS (CONTEXT)
+[Detail konteks, batasan, materi pendukung, dan karakteristik audiens di sini. Cantumkan catatan jika dijalankan di NotebookLM: "Jika dijalankan di NotebookLM, asisten ini akan mendasarkan seluruh analisis dan responnya secara mendalam pada file/sumber rujukan (sources) yang diunggah pengguna."]
+
+### 📊 FORMAT OUTPUT (FORMAT)
+[Detail format keluaran yang paling cocok, misal: tabel terstruktur, naskah dua kolom, dll.]
+
+---
+*(Catatan: Bagian di atas wajib digabungkan secara utuh dengan pembatas header markdown yang jelas di dalam properti "promptSiapPakai" agar pengguna tinggal klik tombol salin dan langsung menempelkannya di Gemini AI atau NotebookLM tanpa perlu menyunting lagi.)*
 
 ${categoryDirective}
 
 Hasilkan respons dalam format JSON yang valid dengan struktur berikut:
 {
-  "promptSiapPakai": "...", // Tuliskan hasil gabungan dari Role, Task, Context, dan Format menjadi satu paragraf atau blok teks yang utuh, mengalir, dan siap disalin oleh pengguna.
+  "promptSiapPakai": "[Teks prompt lengkap gabungan Role, Task, Context, dan Format yang sudah berformat Markdown super rapi seperti petunjuk di atas, siap dicopy-paste ke Gemini/NotebookLM]",
   "struktur": {
-    "role": "...", // Detail peran edukatif atau profesional yang sesuai
-    "task": "...", // Detail tugas spesifik yang harus dikerjakan AI
-    "context": "...", // Detail konteks atau batasan tambahan untuk pembelajaran/tugas
-    "format": "..." // Format keluaran yang paling cocok
+    "role": "[Penjelasan singkat Peran]",
+    "task": "[Penjelasan singkat Tugas]",
+    "context": "[Penjelasan singkat Konteks]",
+    "format": "[Penjelasan singkat Format]"
   },
-  "tips": "..." // Berikan satu atau dua kalimat saran singkat bagaimana pengguna bisa memodifikasi atau menyesuaikan prompt tersebut di kemudian hari.
+  "tips": "[Saran singkat kustomisasi prompt]"
 }
 
 Gunakan bahasa Indonesia yang sopan, profesional, ramah, dan mengedukasi sesuai sasaran audiens.`;
@@ -216,10 +231,22 @@ function generateLocalFallback(userRequest: string, category: string = "Guru") {
     context = "Ditujukan untuk keperluan komunikasi umum, profesionalisme kerja, publikasi media sosial, atau penjelasan populer kepada masyarakat luas. Fokuskan pada kejelasan pesan dan persuasivitas yang memikat.";
     format = "Sajikan dalam draf tulisan siap pakai yang ringkas, berdaya pikat tinggi, mengalir logis, lengkap dengan instruksi teknis pelengkap (seperti petunjuk visual/audio naskah atau subjek surel).";
     tips = "Tips: Tambahkan info audiens target spesifik (misal: calon mitra usaha, penonton TikTok, atau pelanggan baru) dan batasan panjang tulisan.";
+  } else if (category === "Gambar") {
+    role = "Bertindaklah sebagai Art Director, Fotografer Profesional, dan Ahli Pengarah Gaya Visual Kecerdasan Buatan.";
+    task = `Buatkan deskripsi visual/prompt bahasa Inggris yang sangat detail dan spesifik untuk AI Image Generator (seperti Midjourney atau DALL-E 3) mengenai: "${userRequest}".`;
+    context = "Kebutuhan gambar adalah untuk menghasilkan visual berkualitas tinggi, tajam, dengan pencahayaan dramatis (misal: golden hour, volumetric lighting), komposisi sinematik, detail tekstur menawan, serta rasio aspek yang sesuai.";
+    format = "Sajikan teks prompt bahasa Inggris utama yang siap disalin dalam sebuah blok kode (code block), lalu sertakan tips parameter teknis (misalnya rasio aspek --ar, style, quality) serta rekomendasi gaya seni pendukung dalam bahasa Indonesia.";
+    tips = "Tips: Tentukan gaya seni (seperti 3D Render, Watercolor, Photorealistic, Cyberpunk, Oil Painting) agar kecocokan estetika visual makin sempurna.";
   }
 
   // Refine structures if we detect specific keyword matches
-  if (reqLower.includes("rpp") || reqLower.includes("fotosintesis") || reqLower.includes("pelajaran") || reqLower.includes("rencana")) {
+  if (reqLower.includes("gambar") || reqLower.includes("foto") || reqLower.includes("ilustrasi") || reqLower.includes("render") || reqLower.includes("painting") || reqLower.includes("lukisan") || reqLower.includes("prompt")) {
+    role = "Bertindaklah sebagai Art Director dan Desainer Karakter 3D yang piawai dalam rekayasa prompt gambar AI.";
+    task = `Rancanglah sebuah prompt gambar bahasa Inggris yang detail, sinematik, dan memikat untuk topik: "${userRequest}".`;
+    context = "Gunakan kata sifat visual yang hidup, deskripsi pencahayaan terperinci (golden hour/studio lighting), rasio aspek yang pas, dan penyebutan gaya seni tertentu (photorealistic/watercolor/3d clay render).";
+    format = "Sajikan prompt bahasa Inggris siap pakai di dalam blok kode (code block), diiringi rincian parameter dan opsi variasi gaya di bagian bawah.";
+    tips = "Tips: Anda bisa meminta rasio aspek yang berbeda (misalnya --ar 16:9 untuk pemandangan atau --ar 1:1 untuk ikon media sosial).";
+  } else if (reqLower.includes("rpp") || reqLower.includes("fotosintesis") || reqLower.includes("pelajaran") || reqLower.includes("rencana")) {
     role = "Bertindaklah sebagai ahli kurikulum dan Guru Senior yang berpengalaman dalam menyusun bahan ajar interaktif.";
     task = `Buatlah Rencana Pelaksanaan Pembelajaran (RPP) atau Modul Ajar lengkap untuk topik: "${userRequest}".`;
     context = "Target adalah siswa sekolah dengan fokus pembelajaran aktif. Rencana harus mencakup metode interaktif, pertanyaan pemantik, serta alat/bahan yang dibutuhkan.";
@@ -245,7 +272,19 @@ function generateLocalFallback(userRequest: string, category: string = "Guru") {
     tips = "Tips: Anda bisa menyematkan batasan kata (misalnya 'maksimal 300 kata') untuk mengontrol kerapatan informasi.";
   }
 
-  const promptSiapPakai = `${role}\n\n${task}\n\n${context}\n\n${format}`;
+  const promptSiapPakai = `# PROMPT ASISTEN INTELLIGENT [OPTIMAL UNTUK GEMINI AI & NOTEBOOKLM]
+
+### 🎭 PERAN (ROLE)
+${role}
+
+### 📋 TUGAS (TASK)
+${task}
+
+### 📌 KONTEKS (CONTEXT)
+${context}${category !== "Gambar" ? '\n\n*(Catatan Khusus NotebookLM: Jika dijalankan di NotebookLM, asisten ini wajib memprioritaskan analisis berdasarkan file dokumen rujukan atau sumber data (sources) yang Anda unggah.)*' : ''}
+
+### 📊 FORMAT OUTPUT (FORMAT)
+${format}`;
 
   return {
     promptSiapPakai,
